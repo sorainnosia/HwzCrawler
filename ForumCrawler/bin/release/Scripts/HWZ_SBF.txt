@@ -1,0 +1,28 @@
+SET('USER', '{PARAM0}');
+SET('PASS', '{PARAM1}');
+SET('PAGE', '{PARAM2}');
+IF(GET('PAGE'), 'STARTSWITH', '{PARAM', SET('PAGE', '1'), PASS());
+IF(GET('PAGE'), '=', '', SET('PAGE', '1'), PASS());
+SET('URL', 'http://forums.hardwarezone.com.sg/eat-drink-man-woman-16/');
+IF (GET('PAGE') '>', '1',
+   SET('URL', JOIN('', 'http://forums.hardwarezone.com.sg/eat-drink-man-woman-16/index', GET('PAGE'), '.html'));
+,PASS());
+SET('PG3', WC_GetPage(GET('URL'), ''));
+SET('ROWS', SO_TagMatch(GET('PG3'), '<tbody id="threadbits_forum_16"', '</tbody>'));
+SET('ROWS', SO_TagMatch(GET('ROWS'), '<tr>', '</tr>'));
+SET('RESULT', '');
+SET('F', '0');
+FOR('ROW', GET('ROWS'),
+   SET('LINK', SO_TagMatch(GET('ROW'), '<a href="/eat-drink-man-woman-16/', '.html"'));
+   SET('PGCOUNT', SO_TagMatchFromBehind(GET('ROW'), '-', '.html">Last Page</a>'));
+   SET('LL', SO_TagMatch(GET('ROW'), '.html">', '</a>'));
+   IF(GET('PGCOUNT'), '=', '', SET('PGCOUNT', FILTER(MI_Minus(COUNT(GET('LL')), '1'), GET('LL'))), PASS());
+   IF(GET('PGCOUNT'), '=', '', SET('PGCOUNT', '1'), PASS());
+   IF(GET('F'), '=', '0',
+      SET('RESULT', JOIN(' ', GET('LINK'), GET('PGCOUNT')));
+      SET('F', '1');
+   ,
+      SET('RESULT', GET('RESULT');JOIN(' ', GET('LINK'), GET('PGCOUNT')));
+   );
+);
+LOG(GET('RESULT'));
